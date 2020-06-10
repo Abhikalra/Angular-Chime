@@ -1,0 +1,17 @@
+{
+  "extends": "standard",
+  "rules": {
+      "no-template-curly-in-string": 0,
+      "prefer-const": "error",
+      "mocha/no-exclusive-tests": "error"
+  },
+  "plugins": [
+      "mocha"
+  ],
+  "env": {
+      "mocha": true
+  },
+  "parserOptions": {
+      "ecmaVersion": 2018
+  }
+}

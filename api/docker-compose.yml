@@ -1,0 +1,11 @@
+version: "2"
+services:
+  video-call-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "npm install && nodemon ./bin/www.js"
+    ports:
+      - "8070:8070"
+    volumes:
+      - .:/usr/src/app
