@@ -1,0 +1,11 @@
+version: "2"
+services:
+  frontend:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+    command: bash -c "npm install && npm start"
