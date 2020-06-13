@@ -1,7 +1,8 @@
 'use strict'
 
 const router = require('express').Router()
-
+const validate = require('express-validation')
+const meetingValidation = require('../validation/meetingCreate')
 const ChimeVideoController = require('../controller/chimeVideo')
 
 /**
@@ -30,7 +31,7 @@ const log = (err, message, next) => {
  * @apiSuccess {object}       Meeting       meeting information object
  *
  **/
-router.post('/', async (req, res, next) => {
+router.post('/', validate(meetingValidation.createMeeting), async (req, res, next) => {
   try {
     const options = req.body.options
     const attendees = req.body.attendees
@@ -49,7 +50,7 @@ router.post('/', async (req, res, next) => {
  *
  * @apiParam (url) {string}  meetingId      MeetingId
  * */
-router.delete('/:meetingId', async (req, res, next) => {
+router.delete('/:meetingId', validate(meetingValidation.idInParam), async (req, res, next) => {
   try {
     await ChimeVideoController.deleteMeeting(req.params.meetingId)
     res.json({ status: 'ok', meetingId: req.params.meetingId })
@@ -67,7 +68,7 @@ router.delete('/:meetingId', async (req, res, next) => {
  * @apiParam (url) {string}  meetingId      MeetingId
  * @apiSuccess {object}       Meeting       meeting information object
  * */
-router.get('/:meetingId', async (req, res, next) => {
+router.get('/:meetingId', validate(meetingValidation.idInParam), async (req, res, next) => {
   try {
     const meeting = await ChimeVideoController.getMeeting(req.params.meetingId)
     res.json({ meeting })
@@ -87,7 +88,7 @@ router.get('/:meetingId', async (req, res, next) => {
  * @apiParam (body) {string}  attendees.name      Name
  * @apiSuccess {object}       Meeting       attendee information so returned
  * */
-router.post('/:meetingId/add-attendees', async (req, res, next) => {
+router.post('/:meetingId/add-attendees', validate(meetingValidation.addAttendee), async (req, res, next) => {
   try {
     const attendees = req.body.attendees
     const meeting = await ChimeVideoController.addAttendees(req.params.meetingId, attendees)
@@ -98,7 +99,7 @@ router.post('/:meetingId/add-attendees', async (req, res, next) => {
 })
 
 /**
- * @api {delete} /video-call/:meetingId/get-attendees Get attendees in a meeting
+ * @api {get} /video-call/:meetingId/get-attendees Get attendees in a meeting
  * @apiName GetAttendeeInMeeting
  * @apiGroup VideoCallService
  * @apiDescription Get attendees in a meeting
@@ -106,7 +107,7 @@ router.post('/:meetingId/add-attendees', async (req, res, next) => {
  * @apiParam (url) {string}  meetingId      MeetingId
  * @apiSuccess {object[]}       attendees       attendee information so returned
  * */
-router.get('/:meetingId/get-attendees', async (req, res, next) => {
+router.get('/:meetingId/get-attendees', validate(meetingValidation.idInParam), async (req, res, next) => {
   try {
     const attendees = await ChimeVideoController.getAttendees(req.params.meetingId)
     res.json(attendees)

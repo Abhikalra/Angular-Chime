@@ -2,6 +2,8 @@
 const ChimeVideo = require('../service/chime-video')
 const uuid = require('uuid/v4')
 
+const websiteUrl = process.env.FRONTEND_URL + 'video-call/'
+
 /**
  * Creates an external meeting name
  */
@@ -17,11 +19,14 @@ module.exports = {
    */
   async createMeeting (attendees = [], options = {}) {
     if (attendees.length > 4) {
-      throw new Error('Meeting attendees cannot be more than four.')
+      const err = new Error('Cannot add any further attendees to meeting.')
+      err.statusCode = 404
+      err.status = 404
+      throw err
     }
     const meetingAttendees = attendees.map(attendee => {
       const obj = {
-        ExternalUserId: `${uuid().substring(0, 8)}:${attendee.name}`
+        ExternalUserId: `${attendee.name}`
       }
       attendee.ExternalUserId = obj.ExternalUserId
       return obj
@@ -32,11 +37,17 @@ module.exports = {
       const attendees = (await ChimeVideo.addAttendeesToMeeting(meeting.MeetingId, meetingAttendees)).Attendees
       attendees ? meeting.attendees = attendees : meeting.attendees = []
     }
-    meeting.attendees = meeting.attendees.map(attendee => {
+    const meetingInformation = {
+      meetingTitle: meeting.ExternalMeetingId,
+      meetingId: meeting.MeetingId,
+      attendeeLinks: []
+    }
+    meetingInformation.attendeeLinks = meeting.attendees.map(attendee => {
       const userInfo = attendees.find(user => user.ExternalUserId === attendee.ExternalUserId)
-      return { ...attendee, ...userInfo }
+      const joiningLink = `${websiteUrl}${meeting.MeetingId}&AttendeeId=${attendee.AttendeeId}&JoinToken=${attendee.JoinToken}&ExternalUserId=${attendee.ExternalUserId}`
+      return { ...userInfo, joiningLink }
     })
-    return meeting
+    return meetingInformation
   },
 
   /**
@@ -65,16 +76,28 @@ module.exports = {
   async addAttendees (meetingId, attendees = []) {
     const existingAttendees = (await this.getAttendees(meetingId)).attendees
     if (existingAttendees.length === 4) {
-      throw new Error('Cannot add any further attendees to meeting.')
+      const err = new Error('Cannot add any further attendees to meeting.')
+      err.statusCode = 404
+      err.status = 404
+      throw err
+    }
+    if (existingAttendees.length + attendees.length > 4) {
+      const err = new Error('Cannot add more than four attendees to meeting.')
+      err.statusCode = 404
+      err.status = 404
+      throw err
     }
     const meetingAttendees = attendees.map(attendee => {
       const obj = {
-        ExternalUserId: `${uuid().substring(0, 8)}#${attendee.name}`
+        ExternalUserId: `${attendee.name}`
       }
       attendee.ExternalUserId = obj.ExternalUserId
       return obj
     })
-    const result = await ChimeVideo.addAttendeesToMeeting(meetingId, meetingAttendees)
+    const result = await (await ChimeVideo.addAttendeesToMeeting(meetingId, meetingAttendees)).Attendees
+    result.map(attendee => {
+      attendee.joiningLink = `${websiteUrl}${meetingId}&AttendeeId=${attendee.AttendeeId}&JoinToken=${attendee.JoinToken}&ExternalUserId=${attendee.ExternalUserId}`
+    })
     return result
   },
 

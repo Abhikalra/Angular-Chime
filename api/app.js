@@ -43,6 +43,10 @@ app.use(function (err, req, res, next) {
       data: err.object || {}
     }
   }
+  if (err.errors !== undefined) {
+    error.error.message = 'Validation errors encountered'
+    error.error.data.errors = err.errors
+  }
   res.send(error)
 })
 
