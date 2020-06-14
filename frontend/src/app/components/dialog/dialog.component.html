@@ -1,0 +1,20 @@
+<h1 mat-dialog-title>{{data.title}}</h1>
+<div mat-dialog-content>
+  <ng-container>
+    {{data.body}}
+  </ng-container>
+  <ng-container *ngIf="data.errors">
+    <ul *ngFor="let error of data.errors">
+      <li>{{error}}</li>
+    </ul>
+  </ng-container>
+</div>
+<div mat-dialog-actions class="text-right">
+  <ng-container *ngIf="data.confirm; else elseBlock">
+    <button class="btn btn-primary" (click)="submit()">Yes</button>
+    <button class="btn btn-default" (click)="close()">No</button>
+  </ng-container>
+  <ng-template #elseBlock>
+    <button class="btn btn-primary" (click)="close()">OK</button>
+  </ng-template>
+</div>
